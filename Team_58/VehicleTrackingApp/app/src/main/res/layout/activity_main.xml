@@ -45,7 +45,6 @@
 
             android:layout_weight="1"
             android:backgroundTint="#ffffff"
-            android:hint="password"
             android:inputType="text"
             android:shadowColor="#ffffff"
             android:textAlignment="center"
@@ -100,7 +99,6 @@
             android:layout_marginTop="8dp"
             android:layout_weight="1"
             android:backgroundTint="#ffffff"
-            android:hint="email-id"
             android:inputType="text"
             android:shadowColor="#ffffff"
             android:textAlignment="center"

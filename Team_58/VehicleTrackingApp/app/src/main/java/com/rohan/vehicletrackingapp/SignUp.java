@@ -1,6 +1,9 @@
 package com.rohan.vehicletrackingapp;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -23,7 +26,7 @@ public class SignUp extends AppCompatActivity {
     private EditText mpassword;
     private EditText mconfirmpassword;
     private Button mButton;
-    FirebaseAuth mAuth;
+   private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,31 +52,44 @@ public class SignUp extends AppCompatActivity {
     private void checkEmailPassword(String email, String password) {
         Log.d("Vehicle","email:"+email);
         Log.d("Vehicle","password:"+password);
+        email_id.setError(null);
+        mpassword.setError(null);
+
         if(!email.contains("@"))
         {
             Log.d("Vehicle","in if email:"+email);
             Log.d("Vehicle","in if password:"+password);
-            Toast.makeText(getApplicationContext(),"INVALID EMAIL",Toast.LENGTH_SHORT).show();
+            email_id.requestFocus();
+            email_id.setError("INVALID EMAIL");
         }
         else{
 
             if(password.length()<=6)
             {
-                Toast.makeText(getApplicationContext(),"Password should be atleast 6 characters",Toast.LENGTH_SHORT).show();
+                mpassword.requestFocus();
+                mpassword.setError("Password must be atleast 6 characters long");
+            }
+
+            else if(!mconfirmpassword.getText().toString().equals(password))
+            {
+                mconfirmpassword.requestFocus();
+                mconfirmpassword.setError("Password does not match");
+
+
             }
 
             else{
-                registerUser();
+                registerUser(email,password);
             }
 
         }
 
     }
 
-    private void registerUser() {
+    private void registerUser(String email,String password) {
         final ProgressDialog dialog = ProgressDialog.show(SignUp.this, "",
                 "Loading. Please wait...", true);
-        mAuth.createUserWithEmailAndPassword(email_id.toString(),mpassword.toString())
+        mAuth.createUserWithEmailAndPassword(email,password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
@@ -81,8 +97,7 @@ public class SignUp extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             dialog.dismiss();
                             Log.d("vehicle", "succesful authentication");
-                            Toast.makeText(getApplicationContext(), "Succesful registration", Toast.LENGTH_SHORT)
-                                    .show();
+                           showErrorDailog("Succesfully Registered. Please Login");
 
                             FirebaseUser firebaseUser = mAuth.getCurrentUser();
                             UpdateUI(firebaseUser);
@@ -97,6 +112,26 @@ public class SignUp extends AppCompatActivity {
                 });
 
     }
+    private  void showErrorDailog(String message)
+    {
+        new android.support.v7.app.AlertDialog.Builder(this)
+                .setMessage(message)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent =new Intent(SignUp.this,MainActivity.class);
+                        finish();
+                        startActivity(intent);
+                    }
+                })
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
+
+
+
+    }
+
+
 
     private void UpdateUI(Object o) {
     }
