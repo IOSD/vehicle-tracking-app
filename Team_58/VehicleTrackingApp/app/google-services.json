@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "455526022672",
+    "firebase_url": "https://vehicletrackingapp-1f9c4.firebaseio.com",
+    "project_id": "vehicletrackingapp-1f9c4",
+    "storage_bucket": "vehicletrackingapp-1f9c4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:455526022672:android:1bbd97dddec86b63",
+        "android_client_info": {
+          "package_name": "com.rohan.vehicletrackingapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "455526022672-d1a00o33homvfb50urarfk2p7pfcj5vq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rohan.vehicletrackingapp",
+            "certificate_hash": "c60486bf8c46f7799104ffa00c22cad88becf908"
+          }
+        },
+        {
+          "client_id": "455526022672-nrjn1nktmqlfu2nirr6h1gpsfviftkap.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAEqXFi-y_EG87myNryYwlBTxq8bKFpF4I"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "455526022672-nrjn1nktmqlfu2nirr6h1gpsfviftkap.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
