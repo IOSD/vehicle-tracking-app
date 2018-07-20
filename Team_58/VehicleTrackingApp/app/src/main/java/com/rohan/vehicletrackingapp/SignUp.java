@@ -18,6 +18,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class SignUp extends AppCompatActivity {
 
@@ -77,6 +79,11 @@ public class SignUp extends AppCompatActivity {
 
 
             }
+            else if(musername.getText().toString().equals(""))
+            {
+                musername.requestFocus();
+                musername.setError("Username cannot be empty");
+            }
 
             else{
                 registerUser(email,password);
@@ -100,6 +107,7 @@ public class SignUp extends AppCompatActivity {
                            showErrorDailog("Succesfully Registered. Please Login");
 
                             FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                            updateDatabase();
                             UpdateUI(firebaseUser);
                         } else {
                             dialog.dismiss();
@@ -112,6 +120,15 @@ public class SignUp extends AppCompatActivity {
                 });
 
     }
+
+    private void updateDatabase() {
+
+        FirebaseDatabase database=FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference();
+         myRef=myRef.child("Users").child("UserId");
+              myRef.push().setValue(musername.getText().toString());
+    }
+
     private  void showErrorDailog(String message)
     {
         new android.support.v7.app.AlertDialog.Builder(this)
@@ -126,13 +143,7 @@ public class SignUp extends AppCompatActivity {
                 })
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
-
-
-
     }
-
-
-
-    private void UpdateUI(Object o) {
+private void UpdateUI(Object o) {
     }
 }

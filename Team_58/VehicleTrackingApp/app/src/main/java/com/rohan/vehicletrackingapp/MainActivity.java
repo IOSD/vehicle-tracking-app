@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.MapView;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -49,10 +50,15 @@ public class MainActivity extends AppCompatActivity {
 
 
         Login.setOnClickListener(new View.OnClickListener() {
-            @Override
+                       @Override
             public void onClick(View v) {
-                attemptlogin();
-            }
+             //  attemptlogin();
+                           Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+                           finish();
+                           startActivity(intent);
+
+                       }
+
         });
 
 
