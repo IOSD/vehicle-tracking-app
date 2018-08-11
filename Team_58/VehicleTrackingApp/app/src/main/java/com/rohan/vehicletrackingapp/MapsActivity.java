@@ -85,23 +85,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 {
 
                     @Override
-                    public void previousloc(Location location) {
-
-                    }
-                    @Override
                     public void gotLocation(Location location) {
 
                         LatLng myLaLn = new LatLng(location.getLatitude(), location.getLongitude());
 
-                        CameraPosition camPos = new CameraPosition.Builder().target(myLaLn)
+                       final CameraPosition camPos = new CameraPosition.Builder().target(myLaLn)
                                 .zoom(17)
                                 .bearing(0)
                                 .tilt(30)
                                 .build();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                CameraUpdate camUpd3 = CameraUpdateFactory.newCameraPosition(camPos);
+                                mMap.animateCamera(camUpd3);
+                            }
+                        });
 
-                        CameraUpdate camUpd3 = CameraUpdateFactory.newCameraPosition(camPos);
 
-                        mMap.animateCamera(camUpd3);
                         double Speed=getSpeed(location);
                         int nSpeed=(int)Speed;
                         mTextView.setText(""+nSpeed);

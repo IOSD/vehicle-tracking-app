@@ -19,7 +19,7 @@ public class MyLocation {
     LocationResult locationResult;
     boolean gps_enabled=false;
     boolean network_enabled=false;
-    locdata prelocdata = new locdata();
+
 
     @SuppressLint("MissingPermission")
     public boolean getLocation(Context context, LocationResult result)
@@ -74,12 +74,6 @@ public class MyLocation {
     };
 
 
-    class locdata{
-        long mtime;
-        double latitude;
-        double longitude;
-    }
-
 
 
     LocationListener locationListenerNetwork = new LocationListener() {
@@ -102,11 +96,8 @@ public class MyLocation {
         @SuppressLint("MissingPermission")
         @Override
         public void run() {
-
-
             lm.removeUpdates(locationListenerGps);
             lm.removeUpdates(locationListenerNetwork);
-
             Location net_loc=null, gps_loc=null;
             if(gps_enabled)
                 gps_loc=lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -139,6 +130,5 @@ public class MyLocation {
 
     public static abstract class LocationResult{
         public abstract void gotLocation(Location location);
-        public abstract void previousloc(Location location);
     }
 }
