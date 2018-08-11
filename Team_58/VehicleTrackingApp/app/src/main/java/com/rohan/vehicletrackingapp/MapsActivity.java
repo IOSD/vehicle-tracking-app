@@ -1,5 +1,6 @@
 package com.rohan.vehicletrackingapp;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -7,11 +8,15 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 
+import com.github.anastr.speedviewlib.SpeedView;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -21,17 +26,25 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-
+    private Location prevLocaton=null;
+    locdata prelocdata = new locdata();
     LocationManager mLocationManager;
-
+    TextView mTextView;
+    Timer timer;
+    SpeedView speedometer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        mTextView=findViewById(R.id.Speed);
+         speedometer= findViewById(R.id.speedView);
         mLocationManager=(LocationManager) getSystemService(Context.LOCATION_SERVICE);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -40,88 +53,121 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
     }
 
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.
-                            ACCESS_FINE_LOCATION},
-                    101);
-            return;
+                if (ActivityCompat.checkSelfPermission(getApplicationContext()
+                        , android.Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(),
+                        android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    ActivityCompat.requestPermissions(MapsActivity.this, new String[]{android.Manifest.permission.
+                                    ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                            101);
+                    return;
+                }
+                mMap.setMyLocationEnabled(true);
+                Log.d("vehicle","On Map ready");
+
+
+
+                MyLocation.LocationResult lr=new MyLocation.LocationResult()
+                {
+
+                    @Override
+                    public void previousloc(Location location) {
+
+                    }
+                    @Override
+                    public void gotLocation(Location location) {
+
+                        LatLng myLaLn = new LatLng(location.getLatitude(), location.getLongitude());
+
+                        CameraPosition camPos = new CameraPosition.Builder().target(myLaLn)
+                                .zoom(17)
+                                .bearing(0)
+                                .tilt(30)
+                                .build();
+
+                        CameraUpdate camUpd3 = CameraUpdateFactory.newCameraPosition(camPos);
+
+                        mMap.animateCamera(camUpd3);
+                        double Speed=getSpeed(location);
+                        int nSpeed=(int)Speed;
+                        mTextView.setText(""+nSpeed);
+
+                        speedometer.setSpeedAt(nSpeed);
+                        Log.d("Vehicle App","OnLocation Changed");
+
+
+                    }
+
+                };
+                MyLocation myLocation = new MyLocation();
+                myLocation.getLocation(getApplicationContext(), lr);
+
+
+    }
+
+    /**
+     * Gets distance in meters, coordinates in RADIAN
+     */
+    class locdata{
+        long mtime;
+        double latitude;
+        double longitude;
+    }
+    private double getSpeed(Location location){
+        double speed=0;
+
+        Location currLoc = location;
+        locdata data = new locdata();
+        data.latitude = currLoc.getLatitude();
+        data.longitude = currLoc.getLongitude();
+        data.mtime = currLoc.getTime();
+
+
+
+        Log.d("vehicle", "prelocdata.latitude" + prelocdata.latitude);
+        Log.d("vehicle", "prelocdata.longitude" + prelocdata.longitude);
+        Log.d("vehicle", "data.latitude" + data.latitude);
+        Log.d("vehicle", "data.longitude" + data.longitude);
+        Log.d("vehicle", "prelocdata.mtime" + prelocdata.mtime);
+        Log.d("vehicle", "data.mtime" + data.mtime);
+        if (prelocdata.mtime != 0){
+            double distance = getDistance(prelocdata.latitude, prelocdata.longitude,
+                    data.latitude, data.longitude);
+            speed = (distance / (data.mtime - prelocdata.mtime)) * 1000;
+            //mTextView.setText("" + speed);
+            Log.d("vehicle", "SPEED==" + speed);
         }
-        mMap.setMyLocationEnabled(true);
-        Log.d("vehicle","On Map ready");
-        MyLocation.LocationResult lr=new MyLocation.LocationResult() {
-            @Override
-            public void gotLocation(Location location) {
+        prelocdata.mtime=currLoc.getTime();
+        prelocdata.latitude=currLoc.getLatitude();
+        prelocdata.longitude=currLoc.getLongitude();
+        Log.d("vehicle", "SPEED==" + speed);
+        return speed;
+    }
 
-   LatLng myLaLn = new LatLng(location.getLatitude(), location.getLongitude());
+    private static double getDistance(double lat1, double lon1, double lat2, double lon2) {
+        double R = 6371000; // for haversine use R = 6372.8 km instead of 6371 km
+        double dLat = lat2 - lat1;
+        double dLon = lon2 - lon1;
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1) * Math.cos(lat2) *
+                        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        //double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
-                CameraPosition camPos = new CameraPosition.Builder().target(myLaLn)
-                        .zoom(17)
-                        .bearing(0)
-                        .tilt(30)
-                        .build();
-
-                CameraUpdate camUpd3 = CameraUpdateFactory.newCameraPosition(camPos);
-
-                mMap.animateCamera(camUpd3);
-            }
-        };
-        MyLocation myLocation = new MyLocation();
-        myLocation.getLocation(this, lr);
-
-//        mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, new LocationListener() {
-//            @Override
-//            public void onLocationChanged(Location location) {
-//                 Log.d("vehicle","on location changed");
-////                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(),
-////                        location.getLongitude()), 17.0f));
-//                LatLng myLaLn = new LatLng(location.getLatitude(), location.getLongitude());
-//
-//                CameraPosition camPos = new CameraPosition.Builder().target(myLaLn)
-//                        .zoom(17)
-//                        .bearing(0)
-//                        .tilt(30)
-//                        .build();
-//
-//                CameraUpdate camUpd3 = CameraUpdateFactory.newCameraPosition(camPos);
-//
-//                mMap.animateCamera(camUpd3);
-//
-//            }
-//
-//            @Override
-//            public void onStatusChanged(String provider, int status, Bundle extras) {
-//
-//            }
-//
-//            @Override
-//            public void onProviderEnabled(String provider) {
-//
-//            }
-//
-//            @Override
-//            public void onProviderDisabled(String provider) {
-//
-//            }
-//        });
-
-        //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 12.0f));
-        // Add a marker in Sydney and move the camera
-//        LatLng sydney = new LatLng(-34, 151);
-//        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
     }
 
     @SuppressLint("MissingPermission")

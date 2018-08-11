@@ -11,6 +11,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
+import android.util.Log;
 
 public class MyLocation {
     Timer timer1;
@@ -18,16 +19,20 @@ public class MyLocation {
     LocationResult locationResult;
     boolean gps_enabled=false;
     boolean network_enabled=false;
+    locdata prelocdata = new locdata();
 
     @SuppressLint("MissingPermission")
     public boolean getLocation(Context context, LocationResult result)
     {
-        //I use LocationResult callback class to pass location value from MyLocation to user code.
+        //I use LocationResult callback class to pass location value from MyLocation to user code
+
         locationResult=result;
+        Log.d("VehicleApp get Location","OnLocation Changed");
         if(lm==null)
             lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
         //exceptions will be thrown if provider is not permitted.
+
         try{gps_enabled=lm.isProviderEnabled(LocationManager.GPS_PROVIDER);}catch(Exception ex){}
         try{network_enabled=lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);}catch(Exception ex){}
 
@@ -36,13 +41,12 @@ public class MyLocation {
             return false;
 
 
-
         if(gps_enabled)
-            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListenerGps);
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,0 , 0, locationListenerGps);
         if(network_enabled)
             lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListenerNetwork);
         timer1=new Timer();
-        timer1.schedule(new GetLastLocation(), 20000);
+        timer1.schedule(new GetLastLocation(), 2000);
         return true;
     }
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
@@ -50,10 +54,40 @@ public class MyLocation {
 
     }
 
+
+
+
     LocationListener locationListenerGps = new LocationListener() {
         public void onLocationChanged(Location location) {
             timer1.cancel();
             locationResult.gotLocation(location);
+            Log.d("on Location Changed","OnLocation Changed");
+      //      getSpeed(location);
+            lm.removeUpdates(this);
+            lm.removeUpdates(locationListenerNetwork);
+
+
+        }
+        public void onProviderDisabled(String provider) {}
+        public void onProviderEnabled(String provider) {}
+        public void onStatusChanged(String provider, int status, Bundle extras) {}
+    };
+
+
+    class locdata{
+        long mtime;
+        double latitude;
+        double longitude;
+    }
+
+
+
+    LocationListener locationListenerNetwork = new LocationListener() {
+        public void onLocationChanged(Location location) {
+            timer1.cancel();
+            locationResult.gotLocation(location);
+            Log.d("On Location Changed","OnLocation Changed");
+    //        getSpeed(location);
             lm.removeUpdates(this);
             lm.removeUpdates(locationListenerNetwork);
         }
@@ -62,22 +96,14 @@ public class MyLocation {
         public void onStatusChanged(String provider, int status, Bundle extras) {}
     };
 
-    LocationListener locationListenerNetwork = new LocationListener() {
-        public void onLocationChanged(Location location) {
-            timer1.cancel();
-            locationResult.gotLocation(location);
-            lm.removeUpdates(this);
-            lm.removeUpdates(locationListenerGps);
-        }
-        public void onProviderDisabled(String provider) {}
-        public void onProviderEnabled(String provider) {}
-        public void onStatusChanged(String provider, int status, Bundle extras) {}
-    };
 
-    class GetLastLocation extends TimerTask {
+    class
+    GetLastLocation extends TimerTask {
         @SuppressLint("MissingPermission")
         @Override
         public void run() {
+
+
             lm.removeUpdates(locationListenerGps);
             lm.removeUpdates(locationListenerNetwork);
 
@@ -93,6 +119,7 @@ public class MyLocation {
                     locationResult.gotLocation(gps_loc);
                 else
                     locationResult.gotLocation(net_loc);
+
                 return;
             }
 
@@ -106,9 +133,12 @@ public class MyLocation {
             }
             locationResult.gotLocation(null);
         }
+
     }
+
 
     public static abstract class LocationResult{
         public abstract void gotLocation(Location location);
+        public abstract void previousloc(Location location);
     }
 }
