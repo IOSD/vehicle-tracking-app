@@ -52,10 +52,8 @@ public class MainActivity extends AppCompatActivity {
         Login.setOnClickListener(new View.OnClickListener() {
                        @Override
             public void onClick(View v) {
-             //  attemptlogin();
-                           Intent intent = new Intent(MainActivity.this, MapsActivity.class);
-                           finish();
-                           startActivity(intent);
+                           attemptlogin();
+
 
                        }
 
@@ -67,9 +65,38 @@ public class MainActivity extends AppCompatActivity {
     private void attemptlogin() {
         String emailId = email.getText().toString();
         String password1 = password.getText().toString();
-        Login(emailId, password1);
+        if(checkEmailPassword(emailId,password1)) {
+            Login(emailId, password1);
+        }
 
     }
+
+
+    public boolean checkEmailPassword(String Email, String Password) {
+        Log.d("Vehicle","email:"+email);
+        Log.d("Vehicle","password:"+password);
+        email.setError(null);
+        password.setError(null);
+        if(!Email.contains("@"))
+        {
+            email.requestFocus();
+            email.setError("INVALID EMAIL");
+        }
+        else{
+
+            if(Password.length()<=6)
+            {
+                password.requestFocus();
+                password.setError("Incorrect Pasword");
+            }
+            else{
+            return true;
+            }
+
+        }
+        return false;
+    }
+
 
     @Override
     protected void onStart() {
@@ -92,10 +119,13 @@ public class MainActivity extends AppCompatActivity {
                             Log.d("vehicle", "succesful sign in");
                             FirebaseUser firebaseUser = mAuth.getCurrentUser();
                             UpdateUI(firebaseUser);
+                            Intent intent = new Intent(MainActivity.this, SpeedLimit.class);
+                            finish();
+                            startActivity(intent);
                             //AccesingUserInfo();
                         } else {
                             Log.d("vehicle", "UNsuccesful sign in");
-                            Toast.makeText(getApplicationContext(), "Unsuccesful registration", Toast.LENGTH_SHORT)
+                            Toast.makeText(getApplicationContext(), "Unsuccesful Sign in", Toast.LENGTH_SHORT)
                                     .show();
                             UpdateUI(null);
 

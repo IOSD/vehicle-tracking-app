@@ -2,6 +2,7 @@ package com.rohan.vehicletrackingapp;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -10,11 +11,13 @@ import android.location.LocationManager;
 import android.location.LocationProvider;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Vibrator;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.anastr.speedviewlib.SpeedView;
 import com.google.android.gms.maps.CameraUpdate;
@@ -38,12 +41,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     TextView mTextView;
     Timer timer;
     SpeedView speedometer;
+    String newString;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         mTextView=findViewById(R.id.Speed);
+
+        //String newString;
+        if (savedInstanceState == null) {
+            Bundle extras = getIntent().getExtras();
+            if(extras == null) {
+                newString= null;
+            } else {
+                newString= extras.getString("Speed");
+            }
+        } else {
+            newString= (String) savedInstanceState.getSerializable("Speed");
+        }
+
+        Log.d("Vehicle",""+newString);
+        mTextView.setText("Your Speed Limit is "+newString+"kmph");
+
          speedometer= findViewById(R.id.speedView);
         mLocationManager=(LocationManager) getSystemService(Context.LOCATION_SERVICE);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -85,7 +105,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 {
 
                     @Override
-                    public void gotLocation(Location location) {
+                    public void gotLocation(final Location location) {
 
                         LatLng myLaLn = new LatLng(location.getLatitude(), location.getLongitude());
 
@@ -102,21 +122,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             }
                         });
 
+                                                runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
 
-                        double Speed=getSpeed(location);
-                        int nSpeed=(int)Speed;
-                        mTextView.setText(""+nSpeed);
+                                double Speed=getSpeed(location);
+                                 int nSpeed=(
+                                        int)Speed;
+                                //mTextView.setText(""+nSpeed);
 
-                        speedometer.setSpeedAt(nSpeed);
-                        Log.d("Vehicle App","OnLocation Changed");
+                                speedometer.setSpeedAt(nSpeed);
+                                if(nSpeed > Integer.parseInt(newString)) {
 
+                                    Toast.makeText(getApplicationContext(),"CAUTION YOU HAVE EXCEEDED YOUR SPEED LIMIT",Toast.LENGTH_SHORT).show();
+                                    // Get instance of Vibrator from current Context
+                                    Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
+                                   // Vibrate for 400 milliseconds
+                                    v.vibrate(1000);
+                                }
+                                Log.d("Vehicle App","OnLocation Changed");
+
+                            }
+                        });
                     }
 
                 };
                 MyLocation myLocation = new MyLocation();
                 myLocation.getLocation(getApplicationContext(), lr);
-
 
     }
 
@@ -156,7 +189,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         prelocdata.latitude=currLoc.getLatitude();
         prelocdata.longitude=currLoc.getLongitude();
         Log.d("vehicle", "SPEED==" + speed);
-        return speed;
+         if(speed>=100) {
+
+             return speed / 10;
+         }
+         else
+         {
+             return speed;
+         }
     }
 
     private static double getDistance(double lat1, double lon1, double lat2, double lon2) {
