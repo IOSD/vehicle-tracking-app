@@ -37,6 +37,7 @@
             android:textSize="24sp"
             android:textStyle="bold" />
 
+
         <EditText
             android:id="@+id/password"
             android:layout_width="252dp"
